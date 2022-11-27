@@ -59,8 +59,6 @@ try:
         print(cursor.rowcount, "Record inserted successfully into table")
         
         cursor.close()
-        
-        
 
 except Error as e:
     print("Error: ", e)
