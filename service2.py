@@ -15,27 +15,21 @@ user_presenterID = '2'
 psw_password = 'pass'
 
 
-# Adding inputs
-regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+# Add Inputs
+
+# Input user progr
+input_userProgr = input("Input your user progr/ID: ")
+if input_userProgr.isalpha():
+    raise ValueError("ERROR, This is not a value")
 
 # Input user email
+regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+
 input_userEmail = input("Input your email: ")
 if (re.search(regex, input_userEmail)):
     print(input_userEmail, " is a valid email address")
 else:
     raise Exception("ERROR ID 2, email is invalid")
-    
-# Input user country code
-input_userCountryCode = input("Input your country code: ")
-if len(input_userCountryCode) >= 3:
-    raise Exception("ERROR, invalid, country code cannot be more than 2")
-elif len(input_userCountryCode) < 2:
-    raise Exception("ERROR, invalid, country code must have 2")
-
-# Input user presenter ID
-input_userPresenterID =  input("Input your presenter ID: ")
-if input_userPresenterID != user_presenterID:
-    raise Exception("ERROR ID 6")
 
 try:
     # Connector to the DB
@@ -49,14 +43,22 @@ try:
         db_Info = connection.get_server_info()
         print("Connected to MySQL Server version ", db_Info)
         cursor = connection.cursor()
-        query = "select user_mail from db001_registro.user where user_mail = '{input_userEmail}'".format(input_userEmail=input_userEmail)
-        query2 = """insert into db001_registro.user (user_mail, user_countrycode, user_presenterID, user_status) 
-                    VALUES 
-                    ('{input_userEmail}', '{input_userCountryCode}', '{input_userPresenterID}', 1)""".format(input_userEmail=input_userEmail, input_userCountryCode=input_userCountryCode, input_userPresenterID=input_userPresenterID)
-        #cursor.execute(query)
-        cursor.execute(query2)
+        select_query = """select user_mail from db001_registro.user where user_progr = {input_userProgr} and user_mail = '{input_userEmail}'""".format(input_userProgr=input_userProgr, input_userEmail=input_userEmail)
+        update_query = """update db001_registro.user set user_status = 2 where user_mail = '{input_userEmail}'""".format(input_userEmail=input_userEmail)
+        
+        cursor.execute(select_query)
+        record = cursor.fetchone()
+        
+        # Check if record from select_query exists
+        if len(record) < 1:
+            raise Exception("ERROR ID 4")
+        else:
+            print(record)
+        
+        
+        cursor.execute(update_query)
         connection.commit()
-        print(cursor.rowcount, "Record inserted successfully into table")
+        print("User Email matches and status has been updated!")
         
         cursor.close()
 
