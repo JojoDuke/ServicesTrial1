@@ -32,7 +32,7 @@ if len(input_userCountryCode) >= 3:
 elif len(input_userCountryCode) < 2:
     raise Exception("ERROR, invalid, country code must have 2")
 
-# Input user presenter ID
+#Input user presenter ID
 input_userPresenterID =  input("Input your presenter ID: ")
 if input_userPresenterID != user_presenterID:
     raise Exception("ERROR ID 6")
