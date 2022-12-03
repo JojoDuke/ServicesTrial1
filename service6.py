@@ -35,9 +35,9 @@ else:
 # Input the promocode
 input_promocode =  input("Input promo code: ")
 
-# Input App ID
-input_appID = input("Input your app ID: ")
-if input_appID == "":
+# Input App Code
+input_appCode = input("Input your app code: ")
+if input_appCode == "":
     raise Exception("ERROR")
 
 print("\n REG012CHKPROMO: Promocode is valid \n")
@@ -55,15 +55,15 @@ try:
         print("Connected to MySQL Server version ", db_Info)
         cursor = connection.cursor()
         check_email_query = """select user_mail from db001_registro.user where user_progr = {input_userProgr} and user_mail = '{input_userEmail}'""".format(input_userProgr=input_userProgr, input_userEmail=input_userEmail)
-        check_appid_query = """select app_appid from db001_registro.app where app_appid = '{input_appID}'""".format(input_appID=input_appID)
         
         update_query = """update db001_registro.user set 
-            user_status = 5
-            where user_mail = '{input_userEmail}'""".format(input_userEmail=input_userEmail)
+            user_promocode = {input_promocode},
+            user_id = 1
+            where user_mail = '{input_userEmail}'""".format(input_userEmail=input_userEmail, input_promocode=input_promocode)
         
-        #cursor.execute(check_email_query)
-        cursor.execute(check_appid_query)
+        cursor.execute(check_email_query)
         record = cursor.fetchone()
+        print("\n REG0110IDCREATION: Creation UserID \n")
         
         # Check if record from select_query exists
         if len(record) < 1:
@@ -74,7 +74,7 @@ try:
         
         cursor.execute(update_query)
         connection.commit()
-        print("Updated! Email and AppID match")
+        print("Updated! User table")
         
         cursor.close()
 
