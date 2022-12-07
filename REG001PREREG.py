@@ -8,28 +8,22 @@ from mysql.connector import Error
 calltype = input("Calltype: ")
 
 def service1():  
-    # Adding inputs
-    regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
-
-    # Input user email
-    print("\nADD A NEW USER")
-    input_userEmail = input("Input your email: ")
-    if (re.search(regex, input_userEmail)):
-        print(input_userEmail, " is a valid email address")
-    else:
-        raise Exception("ERROR ID 2, email is invalid")
+    
         
-    # Input user country code
-    input_userCountryCode = input("Input your country code: ")
-    if len(input_userCountryCode) >= 3:
-        raise Exception("ERROR, invalid, country code cannot be more than 2")
-    elif len(input_userCountryCode) < 2:
-        raise Exception("ERROR, invalid, country code must have 2")
-
-    # Input user presenter ID
-    input_userPresenterID =  input("Input your presenter ID: ")
+    
 
     try:
+        # Adding inputs
+        regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+
+        # Input user email
+        print("\nADD A NEW USER")
+        input_userEmail = input("Input your email: ")
+        if (re.search(regex, input_userEmail)):
+            print(input_userEmail, " is a valid email address")
+        else:
+            raise Exception("ERROR ID 2, email is invalid")
+        
         # Connector to the DB
         connection = mysql.connector.connect(host='ne-mysqldb-dev.mysql.database.azure.com',
                                             database='db001_registro',
@@ -41,26 +35,42 @@ def service1():
             db_Info = connection.get_server_info()
             print("Connected to MySQL Server version ", db_Info)
             cursor = connection.cursor()
+            emailQuery = "select user_mail from db001_registro.user where user_mail = '{input_userEmail}'".format(input_userEmail=input_userEmail)
             query = """select country_countrycode, country_phoneprefix from db001_registro.country where country_countrycode = '{input_userCountryCode}'""".format(input_userCountryCode=input_userCountryCode)
             query1 = """select user_progr, user_countrycode from db001_registro.user where user_progr = {input_userPresenterID}""".format(input_userPresenterID=input_userPresenterID)
             query2 = """insert into db001_registro.user (user_mail, user_countrycode, user_presenterID, user_status) 
                         VALUES 
                         ('{input_userEmail}', '{input_userCountryCode}', '{input_userPresenterID}', 1)""".format(input_userEmail=input_userEmail, input_userCountryCode=input_userCountryCode, input_userPresenterID=input_userPresenterID)
             
-            cursor.execute(query)
-            record = cursor.fetchone()
-            print("Query Record: ", record)
+            cursor.execute(emailQuery)
             
-            cursor.execute(query1)
-            record1 = cursor.fetchone()
-            print("Query1 Record: ", record1)
-            
-            cursor.execute(query2)
-            connection.commit()
-            print(cursor.rowcount, "Record inserted successfully into table")
-            
-            cursor.close()
+            # Get the number of records returned by the query
+            num_records = cursor.rowcount
 
+            # Check if the email is already in the database
+            if num_records > 0:
+                print("The email, {input_userEmail} is already in the database".format(input_userEmail=input_userEmail))
+                raise Exception("ERROR")
+            # If email does not exist, check other inputs
+            else:
+                # Input user country code
+                input_userCountryCode = input("Input your country code: ")
+                if len(input_userCountryCode) >= 3:
+                    raise Exception("ERROR, invalid, country code cannot be more than 2")
+                elif len(input_userCountryCode) < 2:
+                    raise Exception("ERROR, invalid, country code must have 2")
+
+                # Input user presenter ID
+                input_userPresenterID =  input("Input your presenter ID: ")
+                
+                cursor.execute(query2)
+                connection.commit()
+                print(cursor.rowcount, "Record inserted successfully into table")
+            
+                cursor.close()
+                
+            
+            
     except Error as e:
         print("Error: ", e)
 
@@ -347,8 +357,3 @@ elif calltype == '6':
     service6()
 else:
     raise Exception("WRONG CALLTYPE")
-
-# service2()    
-# service3()   
-# service5() 
-# service6() 
