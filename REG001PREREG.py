@@ -32,7 +32,6 @@ def service1():
             print("Connected to MySQL Server version ", db_Info)
             cursor = connection.cursor()
             emailQuery = "select user_mail from db001_registro.user where user_mail = '{input_userEmail}'".format(input_userEmail=input_userEmail)
-            #query = """select country_countrycode, country_phoneprefix from db001_registro.country where country_countrycode = '{input_userCountryCode}'""".format(input_userCountryCode=input_userCountryCode)
             #query1 = """select user_progr, user_countrycode from db001_registro.user where user_progr = {input_userPresenterID}""".format(input_userPresenterID=input_userPresenterID)
             
             cursor.execute(emailQuery)
@@ -42,7 +41,7 @@ def service1():
 
             # Check if the email is already in the database
             if len(num_records) > 0:
-                print("ERROR: The email, ({input_userEmail}) is already in the database".format(input_userEmail=input_userEmail))
+                raise Exception("ERROR: The email, ({input_userEmail}) is already in the database".format(input_userEmail=input_userEmail))
             # If email does not exist, check other inputs
             else:
                 # Input user country code
@@ -51,20 +50,32 @@ def service1():
                     raise Exception("ERROR, invalid, country code cannot be more than 2")
                 elif len(input_userCountryCode) < 2:
                     raise Exception("ERROR, invalid, country code must have 2")
+                
+                countrycodeQuery = """select country_phoneprefix from db001_registro.country where country_countrycode = '{input_userCountryCode}'""".format(input_userCountryCode=input_userCountryCode)
 
-                # Input user presenter ID
-                input_userPresenterID =  input("Input your presenter ID: ")
+                cursor.execute(countrycodeQuery)
+                num_records2 = cursor.fetchall()
+                records_mod = str(num_records2).replace(",","").replace("'","").replace("(","").replace(")","").replace("[","").replace("]","")
                 
-                query2 = """insert into db001_registro.user (user_mail, user_countrycode, user_presenterID, user_status) 
-                        VALUES 
-                        ('{input_userEmail}', '{input_userCountryCode}', '{input_userPresenterID}', 1)""".format(input_userEmail=input_userEmail, input_userCountryCode=input_userCountryCode, input_userPresenterID=input_userPresenterID)
+                if len(num_records2) < 1:
+                    raise Exception("ERROR: Country code does not exist in the database list".format(input_userEmail=input_userEmail))
+                else:
+                    # Input user presenter ID
+                    input_userPresenterID =  input("Input your presenter ID: ")
+                    
+                    query2 = """insert into db001_registro.user (user_mail, user_countrycode, user_presenterID, user_phoneprefix, user_status) 
+                            VALUES 
+                            ('{input_userEmail}', '{input_userCountryCode}', '{input_userPresenterID}', '{records_mod}', 1)""".format(input_userEmail=input_userEmail, input_userCountryCode=input_userCountryCode, input_userPresenterID=input_userPresenterID, records_mod=records_mod)
+                    
+                    cursor.execute(query2)
+                    connection.commit()
+                    print(cursor.rowcount, "Record inserted successfully into table")
                 
-                cursor.execute(query2)
-                connection.commit()
-                print(cursor.rowcount, "Record inserted successfully into table")
-            
-                cursor.close()
-                print("\n REG007MAILVAL: Mail has been validated \n")
+                    cursor.close()
+                    print("\n REG007MAILVAL: Mail has been validated \n")
+
+
+                
                 
             
             
